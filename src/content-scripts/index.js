@@ -47,6 +47,32 @@ class EventRecorder {
     events.forEach(type => {
       window.addEventListener(type, boundedRecordEvent, true)
     })
+    document.addEventListener('keyup', (e) => {
+      if (e.ctrlKey && e.code == "KeyS") {
+        const div = document.createElement('div');
+        div.style.pointerEvents = 'none';
+        div.style.position = 'absolute';
+        div.style.top = '0';
+        div.style.left = '0';
+        div.style.opacity = '1';
+        div.style.transition = 'opacity 400ms ease-in';
+        div.style.background = 'white';
+        div.style.width = '100vw';
+        div.style.height = '100vh';
+        console.log('screenshot');
+        document.body.appendChild(div);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            div.style.opacity = '0';
+            setTimeout(() => div.remove(), 500);
+          });
+        });
+        this.sendMessage({
+          action: 'screenshot',
+        })
+      }
+
+    });
   }
 
   sendMessage (msg) {
@@ -86,10 +112,10 @@ class EventRecorder {
       ? formatDataSelector(e.target, this.dataAttribute)
       : finder(e.target, {
         tagName: () => true,
-        className: (name) => !name.startsWith('s-') && !['hydrated', 'activated'].includes(name),
+        className: () => false,
         idName: () => true,
         seedMinLength: 1,
-        optimizedMinLength: 5
+        optimizedMinLength: 6
       })
 
     const msg = {

@@ -12,17 +12,7 @@ describe('code-generator', () => {
     const codeGenerator = new CodeGenerator()
     expect(codeGenerator._parseEvents(events)).toContain("await page.select('select#animals', 'hamster')")
   })
-
-  test('it generates the correct waitForNavigation code', () => {
-    const events = [{ action: 'click', selector: 'a.link' }, { action: 'navigation*' }]
-    const codeGenerator = new CodeGenerator()
-    const code = codeGenerator._parseEvents(events)
-    const lines = code.split('\n')
-    expect(lines[1].trim()).toEqual('const navigationPromise = page.waitForNavigation()')
-    expect(lines[4].trim()).toEqual("await page.click('a.link')")
-    expect(lines[6].trim()).toEqual('await navigationPromise')
-  })
-
+  
   test('it does not generate waitForNavigation code when turned off', () => {
     const events = [{ action: 'navigation*' }, { action: 'click', selector: 'a.link' }]
     const codeGenerator = new CodeGenerator({ waitForNavigation: false })
