@@ -9,6 +9,13 @@ class EventRecorder {
   }
 
   start () {
+    chrome.storage.local.set({ location: {
+      path: document.location.pathname,
+      title: document.title
+    }}, () => {
+      console.debug('location saved');
+    });
+
     chrome.storage.local.get(['options'], ({ options }) => {
       const {dataAttribute} = options ? options.code : {}
       if (dataAttribute) {
@@ -77,7 +84,13 @@ class EventRecorder {
 
     const selector = e.target.hasAttribute && e.target.hasAttribute(this.dataAttribute)
       ? formatDataSelector(e.target, this.dataAttribute)
-      : finder(e.target, { seedMinLength: 5, optimizedMinLength: 10 })
+      : finder(e.target, {
+        tagName: () => true,
+        className: (name) => !name.startsWith('s-') && !['hydrated', 'activated'].includes(name),
+        idName: () => true,
+        seedMinLength: 1,
+        optimizedMinLength: 5
+      })
 
     const msg = {
       selector: selector,

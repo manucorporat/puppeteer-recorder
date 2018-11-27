@@ -2,19 +2,14 @@ import domEvents from './dom-events-to-record'
 import pptrActions from './pptr-actions'
 import Block from './Block'
 
-const importPuppeteer = `const puppeteer = require('puppeteer');\n`
+const importPuppeteer = `import { newE2EPage } from '@stencil/core/testing';\n\n`
 
-const header = `const browser = await puppeteer.launch()
-const page = await browser.newPage()`
+const header = (title, path) => `test('${title}', async () => {
+  const page = await newE2EPage({
+    url: '${path}'
+  });`
 
-const footer = `await browser.close()`
-
-const wrappedHeader = `(async () => {
-  const browser = await puppeteer.launch()
-  const page = await browser.newPage()\n`
-
-const wrappedFooter = `  await browser.close()
-})()`
+const footer = `});`
 
 export const defaults = {
   wrapAsync: true,
@@ -32,6 +27,8 @@ export default class CodeGenerator {
     this._frame = 'page'
     this._frameId = 0
     this._allFrames = {}
+    this._title = this._options.title;
+    this._path = this._options.path;
 
     this._hasNavigation = false
   }
@@ -41,14 +38,11 @@ export default class CodeGenerator {
   }
 
   _getHeader () {
-    console.debug(this._options)
-    let hdr = this._options.wrapAsync ? wrappedHeader : header
-    hdr = this._options.headless ? hdr : hdr.replace('launch()', 'launch({ headless: false })')
-    return hdr
+    return header(this._title, this._path);
   }
 
   _getFooter () {
-    return this._options.wrapAsync ? wrappedFooter : footer
+    return footer
   }
 
   _parseEvents (events) {
@@ -74,12 +68,6 @@ export default class CodeGenerator {
           if (tagName === 'SELECT') {
             this._blocks.push(this._handleChange(selector, value))
           }
-          break
-        case 'goto*':
-          this._blocks.push(this._handleGoto(href, frameId))
-          break
-        case 'viewport*':
-          this._blocks.push((this._handleViewport(value.width, value.height)))
           break
         case 'navigation*':
           this._blocks.push(this._handleWaitForNavigation())
@@ -151,10 +139,6 @@ export default class CodeGenerator {
   }
   _handleGoto (href) {
     return new Block(this._frameId, { type: pptrActions.GOTO, value: `await ${this._frame}.goto('${href}')` })
-  }
-
-  _handleViewport (width, height) {
-    return new Block(this._frameId, { type: pptrActions.VIEWPORT, value: `await ${this._frame}.setViewport({ width: ${width}, height: ${height} })` })
   }
 
   _handleWaitForNavigation () {

@@ -2,7 +2,7 @@
   <div id="puppeteer-recorder" class="recorder">
     <div class="header">
       <a href="#" @click="goHome">
-        Puppeteer recorder <span class="text-muted"><small>{{version}}</small></span>
+        Stencil Testing Recorder <span class="text-muted"><small>{{version}}</small></span>
       </a>
       <div class="left">
         <div class="recording-badge" v-show="isRecording">
@@ -109,14 +109,18 @@
         console.debug('stop recorder')
         this.bus.postMessage({ action: 'stop' })
 
-        this.$chrome.storage.local.get(['recording', 'options'], ({ recording, options }) => {
+        this.$chrome.storage.local.get(['recording', 'location', 'options'], ({ recording, location, options }) => {
           console.debug('loaded recording', recording)
           console.debug('loaded options', options)
 
           this.recording = recording
           const codeOptions = options ? options.code : {}
 
-          const codeGen = new CodeGenerator(codeOptions)
+          const codeGen = new CodeGenerator({
+            codeOptions,
+            path: location.path,
+            title: location.title
+          })
           this.code = codeGen.generate(this.recording)
           this.showResultsTab = true
           this.storeState()
